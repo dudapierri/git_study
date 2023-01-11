@@ -116,7 +116,7 @@
         function enviarDados(){
             if (validarDados()) {
                 let divida = obterDadosCadastro()
-                $.post( "http://127.0.0.1:5000/divida", JSON.stringify(divida), function(data) { // usando rest para padronizar a api
+                $.post( "http://127.0.0.1:5000/divida", JSON.stringify(divida), function(data) { // usando rest para padronizar a API
                     obterDividas()
                     $('input').val('')
                 });
