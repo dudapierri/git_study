@@ -1,0 +1,137 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>
+            Cadastro cliente
+        </title>
+    </head>
+    <body>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>cpf</th>
+                        <th>E-mail</th>
+                    </tr>
+                </thead> 
+                <tbody id="dados">
+
+                </tbody>
+            </table>
+            <br>
+            <hr>
+            <br>
+            Nome*: <input type="text" placeholder="..." class ="texto" id="nome">
+            <br>
+            <br>
+            Cpf*: <input type="text" placeholder="..." class ="texto" id="cpf">
+            <br>
+            <br>
+            E-mail*: <input type="text" placeholder="..." class ="texto" id="email">
+            <br>
+            <br>
+            Endereço: <input type="text" placeholder="CEP, número da casa/apartamento, complemento" class ="texto" id="endereco">
+            <br>
+            <br>
+            Valor da dívida*: <input type="text" placeholder="..." class ="texto" id="divida">
+            <br>
+            <br>
+            Objeto da dívida*: <input type="text" placeholder="..." class ="texto" id="objeto">
+            <br>
+            <br>
+            Situação*:
+            <select id="situacao">
+                <option value="pendente">Pendente</option>
+                <option value="pago">Pago</option>
+            </select>
+            <br>
+            <br>
+            Número do processo: <input type="text" placeholder="..." class ="texto" id="numero">
+            <br>
+            <br>
+            Arquivo de comprovante:  <input type="file" id="file"  id="arquivo"/>
+            <br>
+            <br>
+            <button type="submit" value="Enviar" onclick="enviarDados()">Enviar</button>
+       
+    </body>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js"></script>
+    <script>
+        $.ajaxSetup({
+            headers:{
+                'Content-Type': "application/json"
+            }
+        });
+
+        function armazenarEmLocalStorage(dividas) {
+            localStorage.setItem('dividas', JSON.stringify(dividas))
+        }
+
+        function obterLocalStorage() {
+            return JSON.parse(localStorage.getItem('dividas'))
+        }
+
+        function montarTabelaDividas(dividas) {
+            $('tbody tr').remove()
+            for(let divida of dividas){
+                $("#dados").append(`
+                <tr>
+                    <td>${divida.nome||''}</td>
+                    <td>${divida.cpf||''}</td>
+                    <td>${divida.email||''}</td>
+                    <td>${divida.divida||''}</td>
+                    <td>${divida.objeto||''}</td>
+                    <td>${divida.situacao||''}</td>
+                </tr>
+                `)
+            }
+        }
+
+        function validarDados()
+        {
+            let ids = [ 'nome', 'cpf', 'email', 'divida', 'objeto', 'situacao']
+            let nao_preenchidos = []
+            for (id of ids) {
+                let valor = $('#' + id).val().trim()
+                if (valor == '' || valor == null || valor == undefined)
+                    nao_preenchidos.push(id)
+            }
+            if (nao_preenchidos.length > 0){
+                alert('Por favor preencher: ' + nao_preenchidos.join(','))
+                return false
+            }
+            return true
+        }
+
+        function obterDadosCadastro(){
+            let ids = ["nome", "cpf", "email", "divida", "objeto", "situacao"]
+            let divida = {}
+            for (id of ids) {
+                divida[id] =$("#"+id).val() // seletor acessar elementos do hatml por meio dele
+            }
+            return divida
+             
+        }
+
+        function enviarDados(){
+            if (validarDados()) {
+                let divida = obterDadosCadastro()
+                $.post( "http://127.0.0.1:5000/divida", JSON.stringify(divida), function(data) { // usando rest para padronizar a api
+                    obterDividas()
+                    $('input').val('')
+                });
+            }
+        }
+
+        function obterDividas(){
+            $.get("http://127.0.0.1:5000/divida", function(data){
+                armazenarEmLocalStorage(data)
+                montarTabelaDividas(data)
+            }).fail(function() {
+                let dividas = obterLocalStorage()
+                montarTabelaDividas(dividas)
+            })
+        }
+        obterDividas()
+    </script>
+</html>
